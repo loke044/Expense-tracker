@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, PieChart, CreditCard, Layers, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, PieChart, CreditCard, Layers, Menu } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -15,12 +15,16 @@ export default function Navbar() {
     return (
         <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 md:static md:h-screen md:border-r md:border-t-0 flex md:flex-col shadow-lg z-50 transition-all duration-300 ${isOpen ? "md:w-64" : "md:w-20"}`}>
             <div className={`hidden md:flex items-center ${isOpen ? "justify-between px-4" : "justify-center"} h-20 border-b border-gray-100`}>
-                {isOpen && <h1 className="text-2xl font-extrabold text-indigo-700 truncate">Tracker</h1>}
+                {isOpen && (
+                    <h1 className="text-3xl font-extrabold text-indigo-700 leading-tight">
+                        Expense <br /> Tracker
+                    </h1>
+                )}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
                 >
-                    {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                    <Menu size={20} />
                 </button>
             </div>
 

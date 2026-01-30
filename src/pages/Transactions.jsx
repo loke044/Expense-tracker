@@ -46,12 +46,20 @@ export default function Transactions({ expenses, incomes, setModal }) {
                     <h1 className="text-3xl font-extrabold text-gray-800">Transactions</h1>
                     <p className="text-gray-500">Manage your history.</p>
                 </div>
-                <button
-                    onClick={() => setModal({ isOpen: true, type: "expense" })}
-                    className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow hover:bg-indigo-700 transition"
-                >
-                    + New Transaction
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setModal({ isOpen: true, type: "expense" })}
+                        className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg shadow hover:bg-red-600 transition flex items-center gap-2"
+                    >
+                        - Expense
+                    </button>
+                    <button
+                        onClick={() => setModal({ isOpen: true, type: "income" })}
+                        className="px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow hover:bg-green-600 transition flex items-center gap-2"
+                    >
+                        + Income
+                    </button>
+                </div>
             </header>
 
             {/* FILTERS */}
