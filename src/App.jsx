@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { addExpense, addIncome, getExpenses, getIncomes } from "./services/api";
 import TransactionModal from "./components/TransactionModal";
-import StatCard from "./components/StatCard";
-import ExpenseChart from "./components/ExpenseChart";
-import IncomeChart from "./components/IncomeChart";
-import ComparisonChart from "./components/ComparisonChart";
+import Navbar from "./components/Navbar";
+
+// Pages
+import Home from "./pages/Home";
+import Analysis from "./pages/Analysis";
+import Transactions from "./pages/Transactions";
+import Categories from "./pages/Categories";
 
 const BASE_URL = "https://script.google.com/macros/s/AKfycbx2uFASe-lZZmUBa7J-nL_8e7gOwi_UbF407w9GH9TWZBSoBH7X9-xl9b-3fQJie0031A/exec";
 
@@ -43,90 +47,60 @@ function App() {
     setTimeout(refreshData, 1500);
   };
 
-  if (loading) return <div className="p-10 text-center font-bold">Syncing...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-xl font-bold bg-slate-50 text-indigo-600">Syncing Financial Data...</div>;
 
   const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
   const totalExpenses = expenses.reduce((sum, row) => sum + parseVal(row[2]), 0);
   const totalIncome = incomes.reduce((sum, row) => sum + parseVal(row[2]), 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-extrabold text-indigo-700 mb-8">
-          Expense Tracker 💰
-        </h1>
+    <BrowserRouter>
+      <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 font-sans text-gray-900">
+        <Navbar />
 
-        {/* OVERALL STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 w-full">
-          <StatCard title="Total Expenses" value={totalExpenses} color="bg-red-500" />
-          <StatCard title="Total Income" value={totalIncome} color="bg-green-500" />
-          <StatCard title="Balance" value={totalIncome - totalExpenses} color="bg-indigo-600" />
-        </div>
-
-        {/* MONTHLY STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 w-full">
-          <StatCard
-            title="This Month Expenses"
-            value={expenses.reduce((sum, row) => {
-              const rowDate = new Date(row[1]); // Link to Column B (Index 1)
-              const now = new Date();
-              const amount = parseVal(row[2]);
-              const category = String(row[4] || "").toLowerCase();
-
-              const isThisMonth = rowDate.getMonth() === now.getMonth() && rowDate.getFullYear() === now.getFullYear();
-              const isNotLend = category !== "lend";
-
-              if (isThisMonth && isNotLend) {
-                return sum + amount;
+        <main className="flex-1 overflow-y-auto max-h-screen">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Home
+                  expenses={expenses}
+                  incomes={incomes}
+                  totalExpenses={totalExpenses}
+                  totalIncome={totalIncome}
+                  setModal={setModal}
+                />
               }
-              return sum;
-            }, 0)}
-            color="bg-orange-500"
-          />
-          <StatCard
-            title="This Month Income"
-            value={incomes.reduce((sum, row) => {
-              const rowDate = new Date(row[1]); // Link to Column B (Index 1)
-              const now = new Date();
-              const amount = parseVal(row[2]);
-              const category = String(row[4] || "").toLowerCase(); // "Return(lend)"
-
-              const isThisMonth = rowDate.getMonth() === now.getMonth() && rowDate.getFullYear() === now.getFullYear();
-              const isNotReturnLend = category !== "return(lend)";
-
-              if (isThisMonth && isNotReturnLend) {
-                return sum + amount;
+            />
+            <Route
+              path="/analysis"
+              element={
+                <Analysis
+                  expenses={expenses}
+                  incomes={incomes}
+                  totalExpenses={totalExpenses}
+                  totalIncome={totalIncome}
+                />
               }
-              return sum;
-            }, 0)}
-            color="bg-teal-500"
-          />
-        </div>
-
-        {/* HORIZONTAL BUTTONS */}
-        <div className="flex justify-center gap-6 my-8">
-          <button
-            onClick={() => setModal({ isOpen: true, type: "expense" })}
-            className="px-8 py-4 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:scale-95 transition-transform text-lg min-w-[180px]"
-          >
-            - Add Expense
-          </button>
-          <button
-            onClick={() => setModal({ isOpen: true, type: "income" })}
-            className="px-8 py-4 bg-green-500 text-white font-bold rounded-xl shadow-lg hover:scale-95 transition-transform text-lg min-w-[180px]"
-          >
-            + Add Income
-          </button>
-        </div>
-
-        {/* CHARTS SECTION */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-          <ExpenseChart expenses={expenses} />
-          <IncomeChart incomes={incomes} />
-          <div className="lg:col-span-2">
-            <ComparisonChart income={totalIncome} expense={totalExpenses} />
-          </div>
-        </div>
+            />
+            <Route
+              path="/transactions"
+              element={
+                <Transactions
+                  expenses={expenses}
+                  incomes={incomes}
+                  setModal={setModal}
+                />
+              }
+            />
+            <Route
+              path="/categories"
+              element={
+                <Categories categories={categories} />
+              }
+            />
+          </Routes>
+        </main>
 
         <TransactionModal
           isOpen={modal.isOpen}
@@ -136,7 +110,7 @@ function App() {
           onSubmit={handleTransaction}
         />
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
 
