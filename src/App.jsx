@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { addExpense, addIncome, getExpenses, getIncomes } from "./services/api";
+import { addExpense, addIncome, getExpenses, getIncomes, getCategories } from "./services/api";
 import TransactionModal from "./components/TransactionModal";
 import Navbar from "./components/Navbar";
 
@@ -10,8 +9,6 @@ import Home from "./pages/Home";
 import Analysis from "./pages/Analysis";
 import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
-
-const BASE_URL = "https://script.google.com/macros/s/AKfycbx2uFASe-lZZmUBa7J-nL_8e7gOwi_UbF407w9GH9TWZBSoBH7X9-xl9b-3fQJie0031A/exec";
 
 function App() {
   const [expenses, setExpenses] = useState([]);
@@ -23,20 +20,32 @@ function App() {
   const [modal, setModal] = useState({ isOpen: false, type: "expense" });
 
   const refreshData = async () => {
-    const [exp, inc] = await Promise.all([getExpenses(), getIncomes()]);
+    const [exp, inc, cat] = await Promise.all([
+      getExpenses(),
+      getIncomes(),
+      getCategories()
+    ]);
     setExpenses(exp || []);
     setIncomes(inc || []);
+    setCategories(cat || { expenses: [], incomes: [] });
   };
 
   useEffect(() => {
     const init = async () => {
-      const [exp, inc, catRes] = await Promise.all([
-        getExpenses(), getIncomes(), axios.get(`${BASE_URL}?action=categories`)
-      ]);
-      setExpenses(exp || []);
-      setIncomes(inc || []);
-      setCategories(catRes.data || { expenses: [], incomes: [] });
-      setLoading(false);
+      try {
+        const [exp, inc, cat] = await Promise.all([
+          getExpenses(),
+          getIncomes(),
+          getCategories()
+        ]);
+        setExpenses(exp || []);
+        setIncomes(inc || []);
+        setCategories(cat || { expenses: [], incomes: [] });
+      } catch (error) {
+        console.error("Initialization error:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     init();
   }, []);
@@ -90,13 +99,17 @@ function App() {
                   expenses={expenses}
                   incomes={incomes}
                   setModal={setModal}
+                  refreshData={refreshData}
                 />
               }
             />
             <Route
               path="/categories"
               element={
-                <Categories categories={categories} />
+                <Categories
+                  categories={categories}
+                  refreshData={refreshData}
+                />
               }
             />
           </Routes>
@@ -108,6 +121,9 @@ function App() {
           categories={categories}
           onClose={() => setModal({ ...modal, isOpen: false })}
           onSubmit={handleTransaction}
+          editMode={modal.editMode}
+          transactionId={modal.transactionId}
+          initialData={modal.initialData}
         />
       </div>
     </BrowserRouter>

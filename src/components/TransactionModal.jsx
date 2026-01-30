@@ -1,23 +1,36 @@
 import React, { useState, useEffect } from "react";
+import { editTransaction } from "../services/api";
 
-const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories }) => {
+const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories, editMode = false, transactionId, initialData }) => {
   const [form, setForm] = useState({
     date: new Date().toISOString().split("T")[0],
     amount: "",
     description: "",
     category: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setForm({
-        date: new Date().toISOString().split("T")[0],
-        amount: "",
-        description: "",
-        category: "",
-      });
+      if (editMode && initialData) {
+        // Pre-fill form with existing transaction data
+        setForm({
+          date: initialData.date,
+          amount: initialData.amount,
+          description: initialData.description,
+          category: initialData.category
+        });
+      } else {
+        // Reset form for new transaction
+        setForm({
+          date: new Date().toISOString().split("T")[0],
+          amount: "",
+          description: "",
+          category: "",
+        });
+      }
     }
-  }, [isOpen, type]);
+  }, [isOpen, type, editMode, initialData]);
 
   if (!isOpen) return null;
 
@@ -26,10 +39,26 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories }) => {
   const themeColor = isExpense ? "bg-red-500" : "bg-green-500";
   const buttonColor = isExpense ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700";
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit({ ...form, type });
-    onClose();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      if (editMode) {
+        // Edit existing transaction
+        await editTransaction(type, transactionId, form);
+        window.location.reload(); // Refresh to show changes
+      } else {
+        // Add new transaction
+        await onSubmit({ ...form, type });
+      }
+      onClose();
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,7 +75,7 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories }) => {
         {/* Header */}
         <div className={`${themeColor} px-6 py-5 flex justify-between items-center`}>
           <h2 className="text-xl font-bold text-white tracking-wide">
-            ADD {type.toUpperCase()}
+            {editMode ? 'EDIT' : 'ADD'} {type.toUpperCase()}
           </h2>
           <button
             onClick={onClose}
@@ -110,8 +139,10 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories }) => {
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all cursor-pointer"
               >
                 <option value="" disabled className="text-gray-400">Select Category</option>
-                {currentCategories?.map((cat, i) => (
-                  <option key={i} value={cat}>{cat}</option>
+                {currentCategories?.map((catObj, i) => (
+                  <option key={i} value={catObj.name}>
+                    {catObj.icon} {catObj.name}
+                  </option>
                 ))}
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
@@ -123,9 +154,10 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories }) => {
           {/* Submit Button */}
           <button
             type="submit"
-            className={`w-full py-4 mt-4 rounded-xl font-bold text-white uppercase tracking-widest shadow-lg transform transition-all active:scale-[0.98] ${buttonColor}`}
+            disabled={isSubmitting}
+            className={`w-full py-4 mt-4 rounded-xl font-bold text-white uppercase tracking-widest shadow-lg transform transition-all active:scale-[0.98] ${buttonColor} ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            Confirm {type}
+            {isSubmitting ? 'Processing...' : (editMode ? 'Update' : 'Confirm')} {type}
           </button>
         </form>
       </div>

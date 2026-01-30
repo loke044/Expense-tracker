@@ -1,19 +1,36 @@
 import { useState } from "react";
 import TransactionTile from "../components/TransactionTile";
 import { Filter } from "lucide-react";
+import { deleteTransaction } from "../services/api";
 
-export default function Transactions({ expenses, incomes, setModal }) {
+export default function Transactions({ expenses, incomes, setModal, refreshData }) {
     const [filterType, setFilterType] = useState("all"); // all, expense, income
     const [dateFilter, setDateFilter] = useState(""); // YYYY-MM format
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Combine and Tag Data
-    const allTransactions = [
+    let allTransactions = [
         ...expenses.map(e => ({ ...e, _type: "expense", raw: e })),
         ...incomes.map(i => ({ ...i, _type: "income", raw: i }))
     ];
 
-    // Sorting: Date Descending
-    allTransactions.sort((a, b) => new Date(b.raw[1]) - new Date(a.raw[1]));
+    // 1. Sort Date Ascending to Calculate Running Balance
+    allTransactions.sort((a, b) => new Date(a.raw[1]) - new Date(b.raw[1]));
+
+    // 2. Calculate Balance
+    let runningBalance = 0;
+    allTransactions = allTransactions.map(item => {
+        const amount = parseFloat(item.raw[2]) || 0;
+        if (item._type === "income") {
+            runningBalance += amount;
+        } else {
+            runningBalance -= amount;
+        }
+        return { ...item, _balance: runningBalance };
+    });
+
+    // 3. Reverse for Display (Newest First)
+    allTransactions.reverse();
 
     // Filtering
     const filtered = allTransactions.filter(item => {
@@ -29,14 +46,39 @@ export default function Transactions({ expenses, incomes, setModal }) {
         return matchesType && matchesDate;
     });
 
-    const handleDelete = (item) => {
-        // Placeholder logic for now
-        alert("Delete functionality requires backend API update.");
+    const handleDelete = async (item) => {
+        if (!window.confirm("Are you sure you want to delete this transaction?") || isDeleting) return;
+
+        setIsDeleting(true);
+        try {
+            const id = item.raw[0]; // UUID from Column A
+            await deleteTransaction(item._type, id);
+            setTimeout(() => refreshData(), 1000);
+        } catch (error) {
+            console.error("Delete error:", error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const handleEdit = (item) => {
-        // Placeholder logic for now
-        alert("Edit functionality requires backend API update.");
+        // Convert date to YYYY-MM-DD format for date input
+        const dateObj = new Date(item.raw[1]);
+        const formattedDate = dateObj.toISOString().split('T')[0];
+
+        // Pass transaction data to modal for editing
+        setModal({
+            isOpen: true,
+            type: item._type,
+            editMode: true,
+            transactionId: item.raw[0], // UUID
+            initialData: {
+                date: formattedDate,
+                amount: item.raw[2],
+                description: item.raw[3],
+                category: item.raw[4]
+            }
+        });
     };
 
     return (
@@ -106,6 +148,7 @@ export default function Transactions({ expenses, incomes, setModal }) {
                             key={idx}
                             item={item.raw}
                             type={item._type}
+                            balance={item._balance}
                             onDelete={() => handleDelete(item)}
                             onEdit={() => handleEdit(item)}
                         />
