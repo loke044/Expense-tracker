@@ -35,7 +35,7 @@ export default function Navbar() {
                         key={item.name}
                         to={item.path}
                         className={({ isActive }) =>
-                            `flex flex-col md:flex-row items-center p-2 rounded-xl transition-all duration-200 ${isActive
+                            `flex flex-col md:flex-row items-center p-2 rounded-xl transition-all duration-200 active:scale-95 ${isActive
                                 ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 font-bold"
                                 : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
                             } ${isOpen ? "md:justify-start md:px-4" : "md:justify-center"}`

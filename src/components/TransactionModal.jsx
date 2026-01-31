@@ -70,7 +70,7 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories, editMod
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 border dark:border-slate-700">
+      <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-scale-in border dark:border-slate-700">
 
         {/* Header */}
         <div className={`${themeColor} px-6 py-5 flex justify-between items-center`}>
@@ -155,9 +155,15 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories, editMod
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full py-4 mt-4 rounded-xl font-bold text-white uppercase tracking-widest shadow-lg transform transition-all active:scale-[0.98] ${buttonColor} ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`w-full py-4 mt-4 rounded-xl font-bold text-white uppercase tracking-widest shadow-lg transform transition-all active:scale-[0.98] ${buttonColor} ${isSubmitting ? "opacity-75 cursor-not-allowed" : ""}`}
           >
-            {isSubmitting ? 'Processing...' : (editMode ? 'Update' : 'Confirm')} {type}
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                <span>Processing...</span>
+              </div>
+            ) : (editMode ? 'Update' : 'Confirm')}
+            {!isSubmitting && ` ${type}`}
           </button>
         </form>
       </div>

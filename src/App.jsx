@@ -123,11 +123,23 @@ function AppContent() {
   }
 
   if (initializingSheet || loading) return (
-    <div className="min-h-screen flex items-center justify-center text-xl font-bold bg-slate-50 dark:bg-slate-900 text-indigo-600 transition-colors">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        {initializingSheet ? sheetStatus : "Syncing Financial Data..."}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 transition-colors">
+      <div className="relative flex items-center justify-center mb-8">
+        <div className="absolute w-24 h-24 bg-indigo-500/20 rounded-full animate-pulse-slow"></div>
+        <div className="absolute w-16 h-16 bg-indigo-500/40 rounded-full animate-ping"></div>
+        <div className="relative w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg z-10 animate-scale-in">
+          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
       </div>
+
+      <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2 animate-fade-in text-center">
+        {initializingSheet ? "Setting up..." : "Syncing Profile"}
+      </h2>
+      <p className="text-indigo-600 dark:text-indigo-400 font-medium animate-pulse text-sm">
+        {initializingSheet ? sheetStatus : "Just a moment..."}
+      </p>
     </div>
   );
 

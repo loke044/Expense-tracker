@@ -60,10 +60,10 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
     const savingsRate = totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : 0;
 
     return (
-        <div className="p-6 max-w-7xl mx-auto w-full transition-colors">
+        <div className="p-4 md:p-6 max-w-7xl mx-auto w-full transition-colors pb-24 md:pb-8">
             {/* HEADER */}
-            <header className="mb-8">
-                <h1 className="text-4xl font-extrabold text-gray-800 dark:text-white">Dashboard</h1>
+            <header className="mb-8 animate-fade-in">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-800 dark:text-white">Dashboard</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1 uppercase text-xs font-bold tracking-widest">
                     Welcome back, {userName}!
                 </p>
@@ -71,17 +71,17 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
             </header>
 
             {/* QUICK ACTIONS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 animate-slide-up">
                 <button
                     onClick={() => setModal({ isOpen: true, type: "expense" })}
-                    className="flex items-center justify-center gap-3 px-6 py-5 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+                    className="flex items-center justify-center gap-3 px-6 py-5 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
                 >
                     <ArrowDownRight size={24} />
                     <span className="text-lg">Add Expense</span>
                 </button>
                 <button
                     onClick={() => setModal({ isOpen: true, type: "income" })}
-                    className="flex items-center justify-center gap-3 px-6 py-5 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+                    className="flex items-center justify-center gap-3 px-6 py-5 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
                 >
                     <ArrowUpRight size={24} />
                     <span className="text-lg">Add Income</span>
@@ -91,7 +91,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
             {/* MAIN STATS - 5 CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
                 {/* Total Balance */}
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl shadow-lg text-white">
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl shadow-lg text-white animate-slide-up" style={{ animationDelay: '0.1s' }}>
                     <div className="flex items-center justify-between mb-3">
                         <Wallet size={28} />
                         <span className="text-sm font-medium opacity-90">Overall</span>
@@ -101,7 +101,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                 </div>
 
                 {/* Total Income */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-green-200 dark:border-green-900/30 hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-green-200 dark:border-green-900/30 hover:shadow-md transition animate-slide-up" style={{ animationDelay: '0.2s' }}>
                     <div className="flex items-center justify-between mb-3">
                         <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                             <ArrowUpRight size={20} className="text-green-600 dark:text-green-400" />
@@ -113,7 +113,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                 </div>
 
                 {/* Total Expenses */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-red-200 dark:border-red-900/30 hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-red-200 dark:border-red-900/30 hover:shadow-md transition animate-slide-up" style={{ animationDelay: '0.3s' }}>
                     <div className="flex items-center justify-between mb-3">
                         <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
                             <ArrowDownRight size={20} className="text-red-600 dark:text-red-400" />
@@ -125,7 +125,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                 </div>
 
                 {/* Total Investments */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-blue-200 dark:border-blue-900/30 hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-blue-200 dark:border-blue-900/30 hover:shadow-md transition animate-slide-up" style={{ animationDelay: '0.4s' }}>
                     <div className="flex items-center justify-between mb-3">
                         <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                             <TrendingUp size={20} className="text-blue-600 dark:text-blue-400" />
@@ -137,7 +137,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                 </div>
 
                 {/* Savings Rate */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-purple-200 dark:border-purple-900/30 hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-purple-200 dark:border-purple-900/30 hover:shadow-md transition animate-slide-up" style={{ animationDelay: '0.5s' }}>
                     <div className="flex items-center justify-between mb-3">
                         <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                             <TrendingUp size={20} className="text-purple-600 dark:text-purple-400" />
@@ -150,7 +150,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
             </div>
 
             {/* THIS MONTH + LENDING */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-slide-up" style={{ animationDelay: '0.6s' }}>
                 {/* This Month Card */}
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
                     <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
@@ -200,12 +200,12 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
             </div>
 
             {/* RECENT TRANSACTIONS */}
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 animate-slide-up" style={{ animationDelay: '0.7s' }}>
                 <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Recent Transactions</h3>
                 <div className="space-y-2">
                     {allTransactions.length > 0 ? (
                         allTransactions.map((txn, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg transition">
+                            <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg transition hover:-translate-y-1 transform duration-200">
                                 <div className="flex items-center gap-3">
                                     <div className={`p-2 rounded-lg ${txn.type === 'income' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
                                         {txn.type === 'income' ?

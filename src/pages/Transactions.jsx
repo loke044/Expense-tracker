@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import TransactionTile from "../components/TransactionTile";
 import { Filter, Calendar as MyCalendar, X } from "lucide-react";
 import { deleteTransaction } from "../services/api";
@@ -34,59 +34,64 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
         setFilterCategory("all"); // Reset category when tab changes
     };
 
-    // Combine and Tag Data
-    let allTransactions = [
-        ...expenses.map(e => ({ ...e, _type: "expense", raw: e })),
-        ...incomes.map(i => ({ ...i, _type: "income", raw: i }))
-    ];
+    // Memoize the filtering and sorting to prevent heavy re-calcs on every render
+    const { filtered, combinedWithBalance } = useMemo(() => {
+        // Combine and Tag Data
+        let allTransactions = [
+            ...expenses.map(e => ({ ...e, _type: "expense", raw: e })),
+            ...incomes.map(i => ({ ...i, _type: "income", raw: i }))
+        ];
 
-    // 1. Sort Date Ascending to Calculate Running Balance
-    allTransactions.sort((a, b) => new Date(a.raw[1]) - new Date(b.raw[1]));
+        // 1. Sort Date Ascending to Calculate Running Balance
+        allTransactions.sort((a, b) => new Date(a.raw[1]) - new Date(b.raw[1]));
 
-    // 2. Calculate Balance
-    let runningBalance = 0;
-    allTransactions = allTransactions.map(item => {
-        const amount = parseFloat(String(item.raw[2]).replace(/[^0-9.-]+/g, "")) || 0;
-        if (item._type === "income") {
-            runningBalance += amount;
-        } else {
-            runningBalance -= amount;
-        }
-        return { ...item, _balance: runningBalance };
-    });
+        // 2. Calculate Balance
+        let runningBalance = 0;
+        const combined = allTransactions.map(item => {
+            const amount = parseFloat(String(item.raw[2]).replace(/[^0-9.-]+/g, "")) || 0;
+            if (item._type === "income") {
+                runningBalance += amount;
+            } else {
+                runningBalance -= amount;
+            }
+            return { ...item, _balance: runningBalance };
+        });
 
-    // 3. Reverse for Display (Newest First)
-    allTransactions.reverse();
+        // 3. Reverse for Display (Newest First)
+        const displayData = [...combined].reverse();
 
-    // Filtering
-    const filtered = allTransactions.filter(item => {
-        const itemDate = new Date(item.raw[1]);
+        // Filtering
+        const filteredData = displayData.filter(item => {
+            const itemDate = new Date(item.raw[1]);
 
-        // Tab Filtering (formerly filterType)
-        const matchesTab = currentTab === "all" || item._type === currentTab;
+            // Tab Filtering (formerly filterType)
+            const matchesTab = currentTab === "all" || item._type === currentTab;
 
-        // Category Filtering (only for single-type tabs)
-        const matchesCategory = currentTab === "all" ? true : (filterCategory === "all" || item.raw[4] === filterCategory);
+            // Category Filtering (only for single-type tabs)
+            const matchesCategory = currentTab === "all" ? true : (filterCategory === "all" || item.raw[4] === filterCategory);
 
-        let matchesDate = true;
-        if (dateMode === "today") {
-            matchesDate = isToday(itemDate);
-        } else if (dateMode === "thisWeek") {
-            matchesDate = isThisWeek(itemDate);
-        } else if (dateMode === "thisMonth") {
-            matchesDate = isThisMonth(itemDate);
-        } else if (dateMode === "thisYear") {
-            matchesDate = isThisYear(itemDate);
-        } else if (dateMode === "customDate" && startDate) {
-            matchesDate = format(itemDate, 'yyyy-MM-dd') === startDate;
-        } else if (dateMode === "customRange" && startDate && endDate) {
-            const start = startOfDay(parseISO(startDate));
-            const end = endOfDay(parseISO(endDate));
-            matchesDate = isWithinInterval(itemDate, { start, end });
-        }
+            let matchesDate = true;
+            if (dateMode === "today") {
+                matchesDate = isToday(itemDate);
+            } else if (dateMode === "thisWeek") {
+                matchesDate = isThisWeek(itemDate);
+            } else if (dateMode === "thisMonth") {
+                matchesDate = isThisMonth(itemDate);
+            } else if (dateMode === "thisYear") {
+                matchesDate = isThisYear(itemDate);
+            } else if (dateMode === "customDate" && startDate) {
+                matchesDate = format(itemDate, 'yyyy-MM-dd') === startDate;
+            } else if (dateMode === "customRange" && startDate && endDate) {
+                const start = startOfDay(parseISO(startDate));
+                const end = endOfDay(parseISO(endDate));
+                matchesDate = isWithinInterval(itemDate, { start, end });
+            }
 
-        return matchesTab && matchesDate && matchesCategory;
-    });
+            return matchesTab && matchesDate && matchesCategory;
+        });
+
+        return { filtered: filteredData, combinedWithBalance: combined };
+    }, [expenses, incomes, currentTab, filterCategory, dateMode, startDate, endDate]);
 
     const handleDelete = async (item) => {
         if (!window.confirm("Are you sure you want to delete this transaction?") || isDeleting) return;
@@ -125,22 +130,22 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
     const availableCategories = currentTab === "expense" ? categories.expenses : categories.incomes;
 
     return (
-        <div className="p-6 max-w-6xl mx-auto w-full h-[calc(100vh-80px)] flex flex-col transition-colors">
-            <header className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full h-[calc(100vh-80px)] flex flex-col transition-colors pb-24 md:pb-8">
+            <header className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white">Transactions</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Manage your history.</p>
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 dark:text-white">Transactions</h1>
+                    <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Manage your history.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 w-full md:w-auto">
                     <button
                         onClick={() => setModal({ isOpen: true, type: "expense" })}
-                        className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg shadow hover:bg-red-600 transition flex items-center gap-2"
+                        className="flex-1 md:flex-none justify-center px-4 py-2 bg-red-500 text-white font-bold rounded-lg shadow hover:bg-red-600 transition active:scale-95 transform flex items-center gap-2"
                     >
                         - Expense
                     </button>
                     <button
                         onClick={() => setModal({ isOpen: true, type: "income" })}
-                        className="px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow hover:bg-green-600 transition flex items-center gap-2"
+                        className="flex-1 md:flex-none justify-center px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow hover:bg-green-600 transition active:scale-95 transform flex items-center gap-2"
                     >
                         + Income
                     </button>
@@ -148,7 +153,7 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
             </header>
 
             {/* TAB SELECTOR */}
-            <div className="flex border-b border-gray-200 dark:border-slate-700 mb-6 w-full">
+            <div className="flex border-b border-gray-200 dark:border-slate-700 mb-6 w-full overflow-x-auto">
                 {[
                     { id: "all", label: "All Transactions" },
                     { id: "expense", label: "Expenses" },
@@ -157,7 +162,7 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
                     <button
                         key={tab.id}
                         onClick={() => handleTabChange(tab.id)}
-                        className={`px-8 py-3 text-sm font-bold transition-all relative ${currentTab === tab.id
+                        className={`px-4 md:px-8 py-3 text-sm font-bold transition-all relative whitespace-nowrap ${currentTab === tab.id
                             ? "text-indigo-600 dark:text-indigo-400"
                             : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
                             }`}
@@ -171,8 +176,8 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
             </div>
 
             {/* FILTERS */}
-            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-6 space-y-4 transition-colors">
-                <div className="flex flex-wrap items-center gap-6">
+            <div className="bg-white dark:bg-slate-800 p-4 md:p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-6 space-y-4 transition-colors animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
                     <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 font-bold text-sm uppercase tracking-wider">
                         <Filter size={18} className="text-indigo-600" />
                         <span>Filter By:</span>
@@ -180,11 +185,11 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
 
                     {/* Category Filter (ONLY FOR EXPENSE/INCOME TABS) */}
                     {currentTab !== "all" && (
-                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
+                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300 w-full md:w-auto">
                             <select
                                 value={filterCategory}
                                 onChange={(e) => setFilterCategory(e.target.value)}
-                                className="px-3 py-1.5 bg-gray-100 dark:bg-slate-900 border-none rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer"
+                                className="w-full md:w-auto px-3 py-1.5 bg-gray-100 dark:bg-slate-900 border-none rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer"
                             >
                                 <option value="all">All {currentTab === 'expense' ? 'Expenses' : 'Income'} Categories</option>
                                 {availableCategories.map((cat, idx) => (
@@ -197,14 +202,14 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
                     )}
 
                     {/* Quick Period Filter */}
-                    <div className="flex flex-wrap bg-gray-100 dark:bg-slate-900 p-1 rounded-xl">
+                    <div className="flex flex-wrap gap-2 bg-gray-100 dark:bg-slate-900 p-1 rounded-xl">
                         {[
-                            { id: "all", label: "All Time" },
+                            { id: "all", label: "All" },
                             { id: "today", label: "Today" },
                             { id: "thisWeek", label: "Week" },
                             { id: "thisMonth", label: "Month" },
                             { id: "thisYear", label: "Year" },
-                            { id: "customDate", label: "Specific Date" },
+                            { id: "customDate", label: "Date" },
                             { id: "customRange", label: "Range" }
                         ].map(period => (
                             <button
@@ -216,7 +221,7 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
                                         setEndDate("");
                                     }
                                 }}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${dateMode === period.id ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all flex-1 md:flex-none ${dateMode === period.id ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
                                     }`}
                             >
                                 {period.label}
@@ -228,24 +233,24 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
                 {/* Conditional Custom Inputs */}
                 {(dateMode === 'customDate' || dateMode === 'customRange') && (
                     <div className="flex flex-wrap items-center gap-3 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full md:w-auto">
                             <MyCalendar size={18} className="text-gray-400" />
                             <input
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                className="w-full md:w-auto px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                             />
                         </div>
 
                         {dateMode === 'customRange' && (
                             <>
-                                <span className="text-gray-400 text-sm font-bold">To</span>
+                                <span className="text-gray-400 text-sm font-bold hidden md:inline">To</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    className="w-full md:w-auto px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                 />
                             </>
                         )}
@@ -253,7 +258,7 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
                         {(startDate || endDate) && (
                             <button
                                 onClick={() => { setStartDate(""); setEndDate(""); }}
-                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors"
+                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors ml-auto md:ml-0"
                             >
                                 <X size={18} />
                             </button>
@@ -263,11 +268,11 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
             </div>
 
             {/* LIST */}
-            <div className="flex-1 overflow-y-auto pr-2 space-y-3 pb-20 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-slate-700">
+            <div className="flex-1 overflow-y-auto pr-2 space-y-3 pb-24 md:pb-0 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-slate-700">
                 {filtered.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+                    <div className="flex flex-col items-center justify-center py-24 text-gray-400 animate-fade-in">
                         <Filter size={48} className="mb-4 opacity-10" />
-                        <p className="text-lg font-medium">No transactions found for these filters.</p>
+                        <p className="text-lg font-medium">No transactions found.</p>
                         <button
                             onClick={() => {
                                 handleTabChange("all");
@@ -277,20 +282,21 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
                             }}
                             className="mt-4 text-indigo-600 font-bold hover:underline"
                         >
-                            Reset all filters
+                            Reset filters
                         </button>
                     </div>
                 ) : (
                     filtered.map((item, idx) => (
-                        <TransactionTile
-                            key={idx}
-                            item={item.raw}
-                            type={item._type}
-                            balance={item._balance}
-                            emoji={getIcon(item.raw[4], item._type)}
-                            onDelete={() => handleDelete(item)}
-                            onEdit={() => handleEdit(item)}
-                        />
+                        <div key={idx} className="animate-slide-up" style={{ animationDelay: `${Math.min(idx * 0.05, 0.5)}s` }}>
+                            <TransactionTile
+                                item={item.raw}
+                                type={item._type}
+                                balance={item._balance}
+                                emoji={getIcon(item.raw[4], item._type)}
+                                onDelete={() => handleDelete(item)}
+                                onEdit={() => handleEdit(item)}
+                            />
+                        </div>
                     ))
                 )}
             </div>

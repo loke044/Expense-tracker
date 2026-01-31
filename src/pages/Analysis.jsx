@@ -10,9 +10,9 @@ import CategoryComparisonTable from "../components/CategoryComparisonTable";
 
 export default function Analysis({ expenses, incomes, totalExpenses, totalIncome, theme, currency, categories }) {
     return (
-        <div className="p-6 max-w-7xl mx-auto w-full transition-colors">
-            <header className="mb-8">
-                <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white">Analysis</h1>
+        <div className="p-4 md:p-6 max-w-7xl mx-auto w-full transition-colors pb-24 md:pb-8">
+            <header className="mb-8 animate-fade-in">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 dark:text-white">Analysis</h1>
                 <p className="text-gray-500 dark:text-gray-400">Comprehensive breakdown of your finances.</p>
             </header>
 
