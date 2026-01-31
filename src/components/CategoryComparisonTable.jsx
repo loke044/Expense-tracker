@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { formatNumber } from "../utils/formatNumber";
 
 export default function CategoryComparisonTable({ expenses, currency, categories }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
@@ -88,13 +89,13 @@ export default function CategoryComparisonTable({ expenses, currency, categories
                                     <span className="font-medium text-gray-800 dark:text-gray-200">{row.category}</span>
                                 </td>
                                 <td className="py-3 px-4 text-right font-bold text-indigo-600 dark:text-indigo-400">
-                                    {currency}{row.overallTotal.toLocaleString()}
+                                    {currency}{formatNumber(row.overallTotal)}
                                 </td>
                                 <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-400">
-                                    {currency}{row.overallAvg.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                    {currency}{formatNumber(row.overallAvg, 0)}
                                 </td>
                                 <td className={`py-3 px-4 text-right font-bold ${getRowColor(row.thisMonth, row.overallAvg)}`}>
-                                    {currency}{row.thisMonth.toLocaleString()}
+                                    {currency}{formatNumber(row.thisMonth)}
                                 </td>
                             </tr>
                         ))}

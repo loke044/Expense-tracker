@@ -1,4 +1,5 @@
 import { Calendar, TrendingUp } from "lucide-react";
+import { formatNumber } from "../utils/formatNumber";
 
 export default function MonthlySummaryTable({ expenses, incomes, currency }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
@@ -82,16 +83,16 @@ export default function MonthlySummaryTable({ expenses, incomes, currency }) {
                             <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
                                 <td className="py-3 px-4 font-medium text-gray-800 dark:text-gray-200">{row.month}</td>
                                 <td className="py-3 px-4 text-right text-green-600 dark:text-green-400 font-medium">
-                                    {currency}{row.income.toLocaleString()}
+                                    {currency}{formatNumber(row.income)}
                                 </td>
                                 <td className="py-3 px-4 text-right text-red-600 dark:text-red-400 font-medium">
-                                    {currency}{row.expense.toLocaleString()}
+                                    {currency}{formatNumber(row.expense)}
                                 </td>
                                 <td className={`py-3 px-4 text-right font-semibold ${row.net >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                    {row.net >= 0 ? '+' : ''}{currency}{row.net.toLocaleString()}
+                                    {row.net >= 0 ? '+' : ''}{currency}{formatNumber(row.net)}
                                 </td>
                                 <td className={`py-3 px-4 text-right font-bold text-lg ${row.closingBalance >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-red-600 dark:text-red-400'}`}>
-                                    {currency}{row.closingBalance.toLocaleString()}
+                                    {currency}{formatNumber(row.closingBalance)}
                                 </td>
                             </tr>
                         ))}
@@ -103,7 +104,7 @@ export default function MonthlySummaryTable({ expenses, incomes, currency }) {
                 <TrendingUp size={20} className="text-indigo-600 dark:text-indigo-400" />
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                     Current Balance: <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                        {currency}{monthlyData[monthlyData.length - 1]?.closingBalance.toLocaleString() || 0}
+                        {currency}{formatNumber(monthlyData[monthlyData.length - 1]?.closingBalance || 0)}
                     </span>
                 </span>
             </div>

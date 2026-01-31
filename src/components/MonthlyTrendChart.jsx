@@ -1,4 +1,5 @@
 import { Line } from "react-chartjs-2";
+import { formatNumber } from "../utils/formatNumber";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -95,7 +96,7 @@ export default function MonthlyTrendChart({ expenses, incomes, theme, currency }
                 ticks: {
                     color: isDark ? "#94a3b8" : "#374151",
                     font: { weight: "500" },
-                    callback: (value) => `${currency}${value.toLocaleString()}`
+                    callback: (value) => `${currency}${formatNumber(value)}`
                 }
             },
             x: {

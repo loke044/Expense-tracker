@@ -1,4 +1,5 @@
 import { Doughnut } from "react-chartjs-2";
+import { formatNumber } from "../utils/formatNumber";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -109,7 +110,7 @@ export default function ExpenseChart({ expenses, theme, currency, categories }) 
             const label = context.label || "";
             const value = context.raw || 0;
             const percentage = ((value / totalExpenses) * 100).toFixed(1) + "%";
-            return ` ${label}: ${currency}${value.toLocaleString()} (${percentage})`;
+            return ` ${label}: ${currency}${formatNumber(value)} (${percentage})`;
           },
         },
       },
@@ -137,7 +138,7 @@ export default function ExpenseChart({ expenses, theme, currency, categories }) 
 
       ctx.fillStyle = isDark ? "#f8fafc" : "#111827";
       ctx.font = "bold 18px Inter, sans-serif";
-      const valueText = `${currency}${totalExpenses.toLocaleString()}`;
+      const valueText = `${currency}${formatNumber(totalExpenses)}`;
       ctx.fillText(valueText, centerX, centerY + 12);
       ctx.restore();
     },
@@ -168,7 +169,7 @@ export default function ExpenseChart({ expenses, theme, currency, categories }) 
                   </span>
                 </div>
                 <div className="text-sm font-bold text-gray-900 dark:text-white">
-                  {currency}{item.value.toLocaleString()}
+                  {currency}{formatNumber(item.value)}
                 </div>
               </div>
             ))}

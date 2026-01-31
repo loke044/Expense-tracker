@@ -1,4 +1,5 @@
 import { Bar } from "react-chartjs-2";
+import { formatNumber } from "../utils/formatNumber";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -75,7 +76,7 @@ export default function TopCategoriesChart({ expenses, theme, currency, categori
                 },
                 anchor: 'center',
                 align: 'center',
-                formatter: (value) => `${currency}${value.toLocaleString()}`
+                formatter: (value) => `${currency}${formatNumber(value)}`
             }
         },
         scales: {
@@ -86,7 +87,7 @@ export default function TopCategoriesChart({ expenses, theme, currency, categori
                 ticks: {
                     color: isDark ? "#94a3b8" : "#374151",
                     font: { weight: "500" },
-                    callback: (value) => `${currency}${value.toLocaleString()}`
+                    callback: (value) => `${currency}${formatNumber(value)}`
                 }
             },
             y: {

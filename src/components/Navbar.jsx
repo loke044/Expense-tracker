@@ -18,7 +18,7 @@ export default function Navbar() {
             <div className={`hidden md:flex items-center ${isOpen ? "justify-between px-4" : "justify-center"} h-20 border-b border-gray-100 dark:border-slate-800`}>
                 {isOpen && (
                     <h1 className="text-3xl font-extrabold text-indigo-700 dark:text-indigo-400 leading-tight">
-                        Expense <br /> Tracker
+                        My <br /> Finance
                     </h1>
                 )}
                 <button

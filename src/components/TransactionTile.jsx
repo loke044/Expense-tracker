@@ -1,11 +1,14 @@
 import { formatDateCell } from "../utils/formatDate";
+import { formatNumber } from "../utils/formatNumber";
 import { Trash2, Edit2, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 
 export default function TransactionTile({ item, type, balance, onDelete, onEdit, emoji }) {
     // Data format assumed:[id, date, amount, description, category]
 
     const date = formatDateCell(item[1]);
-    const amount = parseFloat(item[2]);
+    const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
+
+    const amount = parseVal(item[2]);
     const description = item[3] || "No Description";
     const category = item[4] || "Uncategorized";
     const isExpense = type === "expense";
@@ -32,7 +35,7 @@ export default function TransactionTile({ item, type, balance, onDelete, onEdit,
             <div className="flex flex-col items-end gap-1">
                 <div className="flex items-center gap-4">
                     <span className={`font-bold text-lg ${isExpense ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}>
-                        {isExpense ? "-" : "+"}{currency}{amount.toLocaleString()}
+                        {isExpense ? "-" : "+"}{currency}{formatNumber(amount)}
                     </span>
 
                     {/* Actions (visible on hover) */}
@@ -47,7 +50,7 @@ export default function TransactionTile({ item, type, balance, onDelete, onEdit,
                 </div>
                 {balance !== undefined && (
                     <span className="text-xs font-medium text-gray-400">
-                        Bal: {currency}{balance.toLocaleString()}
+                        Bal: {currency}{formatNumber(balance)}
                     </span>
                 )}
             </div>

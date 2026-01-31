@@ -1,4 +1,5 @@
 import { TrendingUp, TrendingDown, Wallet, Calendar } from "lucide-react";
+import { formatNumber } from "../utils/formatNumber";
 
 export default function FinancialSummaryCards({ expenses, incomes, totalExpenses, totalIncome, currency }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
@@ -11,7 +12,7 @@ export default function FinancialSummaryCards({ expenses, incomes, totalExpenses
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentExpenses = expenses.filter(row => new Date(row[1]) >= thirtyDaysAgo);
     const recentTotal = recentExpenses.reduce((sum, row) => sum + parseVal(row[2]), 0);
-    const avgDaily = (recentTotal / 30).toFixed(0);
+    const avgDaily = formatNumber(recentTotal / 30, 0);
 
     const categoryTotals = {};
     expenses.forEach(row => {
@@ -25,7 +26,7 @@ export default function FinancialSummaryCards({ expenses, incomes, totalExpenses
     const cards = [
         {
             label: "Savings Rate",
-            value: `${savingsRate}%`,
+            value: `${formatNumber(savingsRate, 1)}%`,
             icon: Wallet,
             color: savingsRate > 20 ? "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400" : "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400",
             trend: savingsRate > 20 ? "Good" : "Improve"
@@ -39,13 +40,13 @@ export default function FinancialSummaryCards({ expenses, incomes, totalExpenses
         {
             label: "Top Category",
             value: topCategory ? topCategory[0] : "N/A",
-            subValue: topCategory ? `${currency}${topCategory[1].toLocaleString()}` : "",
+            subValue: topCategory ? `${currency}${formatNumber(topCategory[1])}` : "",
             icon: TrendingUp,
             color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400"
         },
         {
             label: "Net Flow",
-            value: `${currency}${Math.abs(netFlow).toLocaleString()}`,
+            value: `${currency}${formatNumber(Math.abs(netFlow))}`,
             icon: netFlow >= 0 ? TrendingUp : TrendingDown,
             color: netFlow >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400" : "text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400",
             trend: netFlow >= 0 ? "Surplus" : "Deficit"

@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { formatDateCell } from "../utils/formatDate";
+import { formatNumber } from "../utils/formatNumber";
 import StatCard from "../components/StatCard";
 import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, Calendar, Users } from "lucide-react";
 
@@ -11,6 +13,10 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
         const cat = list.find(c => c.name === catName);
         return cat ? cat.icon : "";
     };
+
+    useEffect(() => {
+        document.title = "My Finance - Dashboard";
+    }, []);
 
     // ... (rest of calculations same)
     const now = new Date();
@@ -90,7 +96,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                         <Wallet size={28} />
                         <span className="text-sm font-medium opacity-90">Overall</span>
                     </div>
-                    <div className="text-3xl font-bold mb-1">{currency}{balance.toLocaleString()}</div>
+                    <div className="text-3xl font-bold mb-1">{currency}{formatNumber(balance)}</div>
                     <div className="text-sm opacity-90">Total Balance</div>
                 </div>
 
@@ -102,7 +108,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                         </div>
                         <span className="text-xs font-medium text-gray-400">Total</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{totalIncome.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{formatNumber(totalIncome)}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Total Income</div>
                 </div>
 
@@ -114,7 +120,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                         </div>
                         <span className="text-xs font-medium text-gray-400">Total</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{totalExpenses.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{formatNumber(totalExpenses)}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Total Expenses</div>
                 </div>
 
@@ -126,7 +132,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                         </div>
                         <span className="text-xs font-medium text-gray-400">Total</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{totalInvestments.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{formatNumber(totalInvestments)}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Investments</div>
                 </div>
 
@@ -138,7 +144,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                         </div>
                         <span className="text-xs font-medium text-gray-400">Rate</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{savingsRate}%</div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{formatNumber(savingsRate, 1)}%</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Savings Rate</div>
                 </div>
             </div>
@@ -154,16 +160,16 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                     <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/10 rounded-lg">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Income</span>
-                            <span className="text-lg font-bold text-green-600 dark:text-green-400">{currency}{thisMonthIncome.toLocaleString()}</span>
+                            <span className="text-lg font-bold text-green-600 dark:text-green-400">{currency}{formatNumber(thisMonthIncome)}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/10 rounded-lg">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Expenses</span>
-                            <span className="text-lg font-bold text-red-600 dark:text-red-400">{currency}{thisMonthExpenses.toLocaleString()}</span>
+                            <span className="text-lg font-bold text-red-600 dark:text-red-400">{currency}{formatNumber(thisMonthExpenses)}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/10 rounded-lg">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Avg Daily Spending</span>
                             <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                                {currency}{(thisMonthExpenses / new Date().getDate()).toFixed(0).toLocaleString()}
+                                {currency}{formatNumber(thisMonthExpenses / new Date().getDate(), 0)}
                             </span>
                         </div>
                     </div>
@@ -178,16 +184,16 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Lent</span>
-                            <span className="text-lg font-semibold text-gray-800 dark:text-white">{currency}{totalLent.toLocaleString()}</span>
+                            <span className="text-lg font-semibold text-gray-800 dark:text-white">{currency}{formatNumber(totalLent)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Returned</span>
-                            <span className="text-lg font-semibold text-green-600 dark:text-green-400">{currency}{totalReturned.toLocaleString()}</span>
+                            <span className="text-lg font-semibold text-green-600 dark:text-green-400">{currency}{formatNumber(totalReturned)}</span>
                         </div>
                         <div className="h-px bg-purple-200 dark:bg-purple-900/30 my-2"></div>
                         <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded-lg border-2 border-purple-300 dark:border-purple-900/50">
                             <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Outstanding</span>
-                            <span className="text-xl font-bold text-purple-600 dark:text-purple-400">{currency}{lendingOutstanding.toLocaleString()}</span>
+                            <span className="text-xl font-bold text-purple-600 dark:text-purple-400">{currency}{formatNumber(lendingOutstanding)}</span>
                         </div>
                     </div>
                 </div>
@@ -216,7 +222,7 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                                     </div>
                                 </div>
                                 <div className={`font-bold ${txn.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                    {txn.type === 'income' ? '+' : '-'}{currency}{parseVal(txn[2]).toLocaleString()}
+                                    {txn.type === 'income' ? '+' : '-'}{currency}{formatNumber(parseVal(txn[2]))}
                                 </div>
                             </div>
                         ))
