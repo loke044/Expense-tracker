@@ -3,13 +3,28 @@ import { createContext, useContext, useEffect, useState } from "react";
 const AuthContext = createContext();
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const SCOPES = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive";
+const SCOPES = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile";
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [tokenClient, setTokenClient] = useState(null);
     const [gapiInitialized, setGapiInitialized] = useState(false);
+
+    const fetchProfile = async (accessToken) => {
+        try {
+            const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (res.ok) {
+                const profile = await res.json();
+                return profile.given_name || profile.name;
+            }
+        } catch (e) {
+            console.warn("Profile fetch failed:", e);
+        }
+        return null;
+    };
 
     useEffect(() => {
         const initializeGoogleModules = () => {
@@ -29,8 +44,17 @@ export function AuthProvider({ children }) {
                     // Restore token ONLY after GAPI is ready
                     const storedToken = localStorage.getItem("google_access_token");
                     if (storedToken) {
-                        setUser({ accessToken: storedToken });
+                        const name = localStorage.getItem("google_user_name");
+                        setUser({ accessToken: storedToken, name });
                         window.gapi.client.setToken({ access_token: storedToken });
+
+                        // Refetch profile to be sure
+                        fetchProfile(storedToken).then(fetchedName => {
+                            if (fetchedName) {
+                                setUser(u => ({ ...u, name: fetchedName }));
+                                localStorage.setItem("google_user_name", fetchedName);
+                            }
+                        });
                     }
                     setLoading(false);
                 });
@@ -41,18 +65,23 @@ export function AuthProvider({ children }) {
                 const client = window.google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID,
                     scope: SCOPES,
-                    callback: (tokenResponse) => {
+                    callback: async (tokenResponse) => {
                         if (tokenResponse && tokenResponse.access_token) {
+                            const accessToken = tokenResponse.access_token;
+                            const name = await fetchProfile(accessToken);
+
                             setUser({
-                                accessToken: tokenResponse.access_token,
+                                accessToken,
                                 expiresIn: tokenResponse.expires_in,
-                                timestamp: Date.now()
+                                timestamp: Date.now(),
+                                name
                             });
-                            localStorage.setItem("google_access_token", tokenResponse.access_token);
+                            localStorage.setItem("google_access_token", accessToken);
+                            if (name) localStorage.setItem("google_user_name", name);
 
                             // Also set token on GAPI client immediately on login
                             if (window.gapi && window.gapi.client) {
-                                window.gapi.client.setToken({ access_token: tokenResponse.access_token });
+                                window.gapi.client.setToken({ access_token: accessToken });
                             }
                         }
                     },
@@ -76,7 +105,8 @@ export function AuthProvider({ children }) {
         if (tokenClient) {
             // Prompt the user to select an account.
             // requestAccessToken({ prompt: '' }) will skip prompt if already consented
-            tokenClient.requestAccessToken();
+            // Force consent to ensure new scopes are granted
+            tokenClient.requestAccessToken({ prompt: 'consent' });
         }
     };
 
