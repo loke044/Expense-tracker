@@ -1,6 +1,6 @@
 import { Calendar, TrendingUp } from "lucide-react";
 
-export default function MonthlySummaryTable({ expenses, incomes }) {
+export default function MonthlySummaryTable({ expenses, incomes, currency }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
 
     // Get last 6 months
@@ -60,38 +60,38 @@ export default function MonthlySummaryTable({ expenses, incomes }) {
     });
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Calendar size={24} className="text-indigo-600" />
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 transition-colors">
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                <Calendar size={24} className="text-indigo-600 dark:text-indigo-400" />
                 Monthly Summary
             </h3>
 
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead>
-                        <tr className="border-b-2 border-gray-200">
-                            <th className="text-left py-3 px-4 font-semibold text-gray-700">Month</th>
-                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Income</th>
-                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Expense</th>
-                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Net</th>
-                            <th className="text-right py-3 px-4 font-semibold text-gray-700">Closing Balance</th>
+                        <tr className="border-b-2 border-gray-200 dark:border-slate-700">
+                            <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Month</th>
+                            <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Income</th>
+                            <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Expense</th>
+                            <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Net</th>
+                            <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Closing Balance</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                         {monthlyData.map((row, idx) => (
-                            <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition">
-                                <td className="py-3 px-4 font-medium text-gray-800">{row.month}</td>
-                                <td className="py-3 px-4 text-right text-green-600 font-medium">
-                                    ₹{row.income.toLocaleString()}
+                            <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
+                                <td className="py-3 px-4 font-medium text-gray-800 dark:text-gray-200">{row.month}</td>
+                                <td className="py-3 px-4 text-right text-green-600 dark:text-green-400 font-medium">
+                                    {currency}{row.income.toLocaleString()}
                                 </td>
-                                <td className="py-3 px-4 text-right text-red-600 font-medium">
-                                    ₹{row.expense.toLocaleString()}
+                                <td className="py-3 px-4 text-right text-red-600 dark:text-red-400 font-medium">
+                                    {currency}{row.expense.toLocaleString()}
                                 </td>
-                                <td className={`py-3 px-4 text-right font-semibold ${row.net >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {row.net >= 0 ? '+' : ''}₹{row.net.toLocaleString()}
+                                <td className={`py-3 px-4 text-right font-semibold ${row.net >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {row.net >= 0 ? '+' : ''}{currency}{row.net.toLocaleString()}
                                 </td>
-                                <td className={`py-3 px-4 text-right font-bold text-lg ${row.closingBalance >= 0 ? 'text-indigo-600' : 'text-red-600'}`}>
-                                    ₹{row.closingBalance.toLocaleString()}
+                                <td className={`py-3 px-4 text-right font-bold text-lg ${row.closingBalance >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {currency}{row.closingBalance.toLocaleString()}
                                 </td>
                             </tr>
                         ))}
@@ -99,11 +99,11 @@ export default function MonthlySummaryTable({ expenses, incomes }) {
                 </table>
             </div>
 
-            <div className="mt-4 p-4 bg-indigo-50 rounded-lg flex items-center gap-2">
-                <TrendingUp size={20} className="text-indigo-600" />
-                <span className="text-sm text-gray-700">
-                    Current Balance: <span className="font-bold text-indigo-600">
-                        ₹{monthlyData[monthlyData.length - 1]?.closingBalance.toLocaleString() || 0}
+            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex items-center gap-2">
+                <TrendingUp size={20} className="text-indigo-600 dark:text-indigo-400" />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Current Balance: <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                        {currency}{monthlyData[monthlyData.length - 1]?.closingBalance.toLocaleString() || 0}
                     </span>
                 </span>
             </div>

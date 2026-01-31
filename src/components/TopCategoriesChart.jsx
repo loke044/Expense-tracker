@@ -8,13 +8,20 @@ import {
     Tooltip,
     Legend
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
-export default function TopCategoriesChart({ expenses }) {
+export default function TopCategoriesChart({ expenses, theme, currency, categories }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
+    const isDark = theme === "dark";
 
-    // Group by category
+    const getIcon = (catName) => {
+        const cat = categories.expenses.find(c => c.name === catName);
+        return cat ? cat.icon : "";
+    };
+
+    // ... (rest same)
     const categoryTotals = {};
     expenses.forEach(row => {
         const amount = parseVal(row[2]);
@@ -22,7 +29,6 @@ export default function TopCategoriesChart({ expenses }) {
         categoryTotals[category] = (categoryTotals[category] || 0) + amount;
     });
 
-    // Get top 5
     const top5 = Object.entries(categoryTotals)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 5);
@@ -32,16 +38,19 @@ export default function TopCategoriesChart({ expenses }) {
     }
 
     const data = {
-        labels: top5.map(([cat]) => cat),
+        labels: top5.map(([cat]) => {
+            const icon = getIcon(cat);
+            return icon ? `${icon} ${cat}` : cat;
+        }),
         datasets: [{
-            label: "Amount (₹)",
+            label: `Amount (${currency})`,
             data: top5.map(([, amt]) => amt),
             backgroundColor: [
-                "#4338ca",
-                "#059669",
-                "#dc2626",
-                "#d97706",
-                "#0891b2"
+                "#6366f1",
+                "#10b981",
+                "#f43f5e",
+                "#f59e0b",
+                "#06b6d4"
             ]
         }]
     };
@@ -55,20 +64,45 @@ export default function TopCategoriesChart({ expenses }) {
             title: {
                 display: true,
                 text: "Top 5 Expense Categories",
+                color: isDark ? "#f8fafc" : "#1f2937",
                 font: { size: 16, weight: "bold" }
+            },
+            datalabels: {
+                color: '#ffffff',
+                font: {
+                    weight: 'bold',
+                    size: 11
+                },
+                anchor: 'center',
+                align: 'center',
+                formatter: (value) => `${currency}${value.toLocaleString()}`
             }
         },
         scales: {
             x: {
+                grid: {
+                    color: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"
+                },
                 ticks: {
-                    callback: (value) => `₹${value.toLocaleString()}`
+                    color: isDark ? "#94a3b8" : "#374151",
+                    font: { weight: "500" },
+                    callback: (value) => `${currency}${value.toLocaleString()}`
+                }
+            },
+            y: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: isDark ? "#94a3b8" : "#374151",
+                    font: { weight: "500" }
                 }
             }
         }
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 transition-colors">
             <div style={{ height: "300px" }}>
                 <Bar data={data} options={options} />
             </div>

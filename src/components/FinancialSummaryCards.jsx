@@ -1,20 +1,18 @@
 import { TrendingUp, TrendingDown, Wallet, Calendar } from "lucide-react";
 
-export default function FinancialSummaryCards({ expenses, incomes, totalExpenses, totalIncome }) {
+export default function FinancialSummaryCards({ expenses, incomes, totalExpenses, totalIncome, currency }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
 
-    // Calculate metrics
+    // ... (rest logic same)
     const netFlow = totalIncome - totalExpenses;
     const savingsRate = totalIncome > 0 ? ((netFlow / totalIncome) * 100).toFixed(1) : 0;
 
-    // Calculate average daily spending (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentExpenses = expenses.filter(row => new Date(row[1]) >= thirtyDaysAgo);
     const recentTotal = recentExpenses.reduce((sum, row) => sum + parseVal(row[2]), 0);
     const avgDaily = (recentTotal / 30).toFixed(0);
 
-    // Find highest expense category
     const categoryTotals = {};
     expenses.forEach(row => {
         const amount = parseVal(row[2]);
@@ -29,27 +27,27 @@ export default function FinancialSummaryCards({ expenses, incomes, totalExpenses
             label: "Savings Rate",
             value: `${savingsRate}%`,
             icon: Wallet,
-            color: savingsRate > 20 ? "text-green-600 bg-green-100" : "text-orange-600 bg-orange-100",
+            color: savingsRate > 20 ? "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400" : "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400",
             trend: savingsRate > 20 ? "Good" : "Improve"
         },
         {
             label: "Avg Daily Spending",
-            value: `₹${avgDaily}`,
+            value: `${currency}${avgDaily}`,
             icon: Calendar,
-            color: "text-blue-600 bg-blue-100"
+            color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400"
         },
         {
             label: "Top Category",
             value: topCategory ? topCategory[0] : "N/A",
-            subValue: topCategory ? `₹${topCategory[1].toLocaleString()}` : "",
+            subValue: topCategory ? `${currency}${topCategory[1].toLocaleString()}` : "",
             icon: TrendingUp,
-            color: "text-purple-600 bg-purple-100"
+            color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400"
         },
         {
             label: "Net Flow",
-            value: `₹${Math.abs(netFlow).toLocaleString()}`,
+            value: `${currency}${Math.abs(netFlow).toLocaleString()}`,
             icon: netFlow >= 0 ? TrendingUp : TrendingDown,
-            color: netFlow >= 0 ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100",
+            color: netFlow >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400" : "text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400",
             trend: netFlow >= 0 ? "Surplus" : "Deficit"
         }
     ];
@@ -59,17 +57,17 @@ export default function FinancialSummaryCards({ expenses, incomes, totalExpenses
             {cards.map((card, idx) => {
                 const Icon = card.icon;
                 return (
-                    <div key={idx} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div key={idx} className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-md transition-all">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm font-medium text-gray-500">{card.label}</span>
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{card.label}</span>
                             <div className={`p-2 rounded-lg ${card.color}`}>
                                 <Icon size={20} />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-800">{card.value}</div>
-                        {card.subValue && <div className="text-xs text-gray-500 mt-1">{card.subValue}</div>}
+                        <div className="text-2xl font-bold text-gray-800 dark:text-white">{card.value}</div>
+                        {card.subValue && <div className="text-xs text-gray-400 mt-1">{card.subValue}</div>}
                         {card.trend && (
-                            <div className="text-xs mt-2 font-medium" style={{ color: card.color.split(' ')[0].replace('text-', '') }}>
+                            <div className={`text-xs mt-2 font-medium ${card.color.split(' ')[0]}`}>
                                 {card.trend}
                             </div>
                         )}

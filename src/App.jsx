@@ -9,15 +9,29 @@ import Home from "./pages/Home";
 import Analysis from "./pages/Analysis";
 import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
+import Settings from "./pages/Settings";
 
 function App() {
   const [expenses, setExpenses] = useState([]);
   const [incomes, setIncomes] = useState([]);
   const [categories, setCategories] = useState({ expenses: [], incomes: [] });
   const [loading, setLoading] = useState(true);
+  // Theme State
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const [currency, setCurrency] = useState(localStorage.getItem("currency") || "₹");
+  const [userName, setUserName] = useState(localStorage.getItem("userName") || "User");
 
   // Modal State
   const [modal, setModal] = useState({ isOpen: false, type: "expense" });
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const refreshData = async () => {
     const [exp, inc, cat] = await Promise.all([
@@ -56,7 +70,14 @@ function App() {
     setTimeout(refreshData, 1500);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-xl font-bold bg-slate-50 text-indigo-600">Syncing Financial Data...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center text-xl font-bold bg-slate-50 dark:bg-slate-900 text-indigo-600 transition-colors">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        Syncing Financial Data...
+      </div>
+    </div>
+  );
 
   const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
   const totalExpenses = expenses.reduce((sum, row) => sum + parseVal(row[2]), 0);
@@ -64,7 +85,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 font-sans text-gray-900">
+      <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
         <Navbar />
 
         <main className="flex-1 overflow-y-auto max-h-screen">
@@ -78,6 +99,9 @@ function App() {
                   totalExpenses={totalExpenses}
                   totalIncome={totalIncome}
                   setModal={setModal}
+                  userName={userName}
+                  currency={currency}
+                  categories={categories}
                 />
               }
             />
@@ -89,6 +113,9 @@ function App() {
                   incomes={incomes}
                   totalExpenses={totalExpenses}
                   totalIncome={totalIncome}
+                  theme={theme}
+                  currency={currency}
+                  categories={categories}
                 />
               }
             />
@@ -100,6 +127,7 @@ function App() {
                   incomes={incomes}
                   setModal={setModal}
                   refreshData={refreshData}
+                  categories={categories}
                 />
               }
             />
@@ -109,6 +137,15 @@ function App() {
                 <Categories
                   categories={categories}
                   refreshData={refreshData}
+                />
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <Settings
+                  theme={theme}
+                  setTheme={setTheme}
                 />
               }
             />

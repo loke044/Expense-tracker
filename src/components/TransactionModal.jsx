@@ -70,7 +70,7 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories, editMod
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 border dark:border-slate-700">
 
         {/* Header */}
         <div className={`${themeColor} px-6 py-5 flex justify-between items-center`}>
@@ -90,53 +90,53 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories, editMod
 
           {/* Date Input */}
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Date</label>
+            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Date</label>
             <input
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
               required
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all font-medium"
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all font-medium"
             />
           </div>
 
           {/* Amount Input */}
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Amount (₹)</label>
+            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Amount ({localStorage.getItem("currency") || "₹"})</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₹</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">{localStorage.getItem("currency") || "₹"}</span>
               <input
                 type="number"
                 placeholder="0.00"
                 value={form.amount}
                 onChange={(e) => setForm({ ...form, amount: e.target.value })}
                 required
-                className="w-full pl-8 pr-4 py-4 rounded-xl bg-gray-50 border border-gray-200 text-2xl font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all placeholder-gray-300"
+                className="w-full pl-8 pr-4 py-4 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-2xl font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all placeholder-gray-300 dark:placeholder-gray-700"
               />
             </div>
           </div>
 
           {/* Description Input */}
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Description</label>
+            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Description</label>
             <input
               type="text"
               placeholder={isExpense ? "What did you spend on?" : "Income source"}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all"
             />
           </div>
 
           {/* Category Select */}
           <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Category</label>
+            <label className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Category</label>
             <div className="relative">
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-all cursor-pointer"
               >
                 <option value="" disabled className="text-gray-400">Select Category</option>
                 {currentCategories?.map((catObj, i) => (

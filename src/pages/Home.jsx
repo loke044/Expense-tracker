@@ -1,10 +1,18 @@
+import { formatDateCell } from "../utils/formatDate";
 import StatCard from "../components/StatCard";
 import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, Calendar, Users } from "lucide-react";
 
-export default function Home({ expenses, incomes, totalExpenses, totalIncome, setModal }) {
+export default function Home({ expenses, incomes, totalExpenses, totalIncome, setModal, userName, currency, categories }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
 
-    // Calculate this month's data
+    // Helper to find icon
+    const getIcon = (catName, type) => {
+        const list = type === "expense" ? (categories?.expenses || []) : (categories?.incomes || []);
+        const cat = list.find(c => c.name === catName);
+        return cat ? cat.icon : "";
+    };
+
+    // ... (rest of calculations same)
     const now = new Date();
     const thisMonthExpenses = expenses.reduce((sum, row) => {
         const rowDate = new Date(row[1]);
@@ -26,14 +34,12 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
         return sum;
     }, 0);
 
-    // Lending data
     const totalLent = expenses.filter(row => String(row[4]).toLowerCase() === "lend")
         .reduce((sum, row) => sum + parseVal(row[2]), 0);
     const totalReturned = incomes.filter(row => String(row[4]).toLowerCase() === "return(lend)")
         .reduce((sum, row) => sum + parseVal(row[2]), 0);
     const lendingOutstanding = totalLent - totalReturned;
 
-    // Recent transactions (last 5)
     const allTransactions = [
         ...expenses.map(e => ({ ...e, type: 'expense', date: new Date(e[1]) })),
         ...incomes.map(i => ({ ...i, type: 'income', date: new Date(i[1]) }))
@@ -43,14 +49,17 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
     const savingsRate = totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : 0;
 
     return (
-        <div className="p-6 max-w-7xl mx-auto w-full">
+        <div className="p-6 max-w-7xl mx-auto w-full transition-colors">
             {/* HEADER */}
             <header className="mb-8">
-                <h1 className="text-4xl font-extrabold text-gray-800">Dashboard</h1>
-                <p className="text-gray-500 mt-1">Welcome back! Here's your financial overview.</p>
+                <h1 className="text-4xl font-extrabold text-gray-800 dark:text-white">Dashboard</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-1 uppercase text-xs font-bold tracking-widest">
+                    Welcome back, {userName}!
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Here's your financial overview.</p>
             </header>
 
-            {/* QUICK ACTIONS - MOVED TO TOP */}
+            {/* QUICK ACTIONS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <button
                     onClick={() => setModal({ isOpen: true, type: "expense" })}
@@ -76,123 +85,126 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                         <Wallet size={28} />
                         <span className="text-sm font-medium opacity-90">Overall</span>
                     </div>
-                    <div className="text-3xl font-bold mb-1">₹{balance.toLocaleString()}</div>
+                    <div className="text-3xl font-bold mb-1">{currency}{balance.toLocaleString()}</div>
                     <div className="text-sm opacity-90">Total Balance</div>
                 </div>
 
                 {/* Total Income */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border-2 border-green-200 hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-green-200 dark:border-green-900/30 hover:shadow-md transition">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="p-2 bg-green-100 rounded-lg">
-                            <ArrowUpRight size={20} className="text-green-600" />
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <ArrowUpRight size={20} className="text-green-600 dark:text-green-400" />
                         </div>
-                        <span className="text-xs font-medium text-gray-500">Total</span>
+                        <span className="text-xs font-medium text-gray-400">Total</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 mb-1">₹{totalIncome.toLocaleString()}</div>
-                    <div className="text-sm text-gray-500">Total Income</div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{totalIncome.toLocaleString()}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Total Income</div>
                 </div>
 
                 {/* Total Expenses */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border-2 border-red-200 hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-red-200 dark:border-red-900/30 hover:shadow-md transition">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="p-2 bg-red-100 rounded-lg">
-                            <ArrowDownRight size={20} className="text-red-600" />
+                        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                            <ArrowDownRight size={20} className="text-red-600 dark:text-red-400" />
                         </div>
-                        <span className="text-xs font-medium text-gray-500">Total</span>
+                        <span className="text-xs font-medium text-gray-400">Total</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 mb-1">₹{totalExpenses.toLocaleString()}</div>
-                    <div className="text-sm text-gray-500">Total Expenses</div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{totalExpenses.toLocaleString()}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Total Expenses</div>
                 </div>
 
                 {/* Savings Rate */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border-2 border-purple-200 hover:shadow-md transition">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-purple-200 dark:border-purple-900/30 hover:shadow-md transition">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="p-2 bg-purple-100 rounded-lg">
-                            <TrendingUp size={20} className="text-purple-600" />
+                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                            <TrendingUp size={20} className="text-purple-600 dark:text-purple-400" />
                         </div>
-                        <span className="text-xs font-medium text-gray-500">Rate</span>
+                        <span className="text-xs font-medium text-gray-400">Rate</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-800 mb-1">{savingsRate}%</div>
-                    <div className="text-sm text-gray-500">Savings Rate</div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{savingsRate}%</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Savings Rate</div>
                 </div>
             </div>
 
             {/* THIS MONTH + LENDING */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* This Month Card */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Calendar size={22} className="text-indigo-600" />
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                        <Calendar size={22} className="text-indigo-600 dark:text-indigo-400" />
                         This Month
                     </h3>
                     <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                            <span className="text-sm font-medium text-gray-700">Income</span>
-                            <span className="text-lg font-bold text-green-600">₹{thisMonthIncome.toLocaleString()}</span>
+                        <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/10 rounded-lg">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Income</span>
+                            <span className="text-lg font-bold text-green-600 dark:text-green-400">{currency}{thisMonthIncome.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                            <span className="text-sm font-medium text-gray-700">Expenses</span>
-                            <span className="text-lg font-bold text-red-600">₹{thisMonthExpenses.toLocaleString()}</span>
+                        <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Expenses</span>
+                            <span className="text-lg font-bold text-red-600 dark:text-red-400">{currency}{thisMonthExpenses.toLocaleString()}</span>
                         </div>
-                        <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                            <span className="text-sm font-medium text-gray-700">Avg Daily Spending</span>
-                            <span className="text-lg font-bold text-orange-600">
-                                ₹{(thisMonthExpenses / new Date().getDate()).toFixed(0).toLocaleString()}
+                        <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/10 rounded-lg">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Avg Daily Spending</span>
+                            <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                                {currency}{(thisMonthExpenses / new Date().getDate()).toFixed(0).toLocaleString()}
                             </span>
                         </div>
                     </div>
                 </div>
 
                 {/* Lending Summary */}
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl shadow-sm border-2 border-purple-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Users size={22} className="text-purple-600" />
+                <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/10 dark:to-blue-900/10 p-6 rounded-xl shadow-sm border-2 border-purple-200 dark:border-purple-900/30">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                        <Users size={22} className="text-purple-600 dark:text-purple-400" />
                         Lending Summary
                     </h3>
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700">Total Lent</span>
-                            <span className="text-lg font-semibold text-gray-800">₹{totalLent.toLocaleString()}</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Lent</span>
+                            <span className="text-lg font-semibold text-gray-800 dark:text-white">{currency}{totalLent.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium text-gray-700">Returned</span>
-                            <span className="text-lg font-semibold text-green-600">₹{totalReturned.toLocaleString()}</span>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Returned</span>
+                            <span className="text-lg font-semibold text-green-600 dark:text-green-400">{currency}{totalReturned.toLocaleString()}</span>
                         </div>
-                        <div className="h-px bg-purple-200 my-2"></div>
-                        <div className="flex justify-between items-center p-3 bg-white rounded-lg border-2 border-purple-300">
-                            <span className="text-sm font-bold text-gray-700">Outstanding</span>
-                            <span className="text-xl font-bold text-purple-600">₹{lendingOutstanding.toLocaleString()}</span>
+                        <div className="h-px bg-purple-200 dark:bg-purple-900/30 my-2"></div>
+                        <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-900 rounded-lg border-2 border-purple-300 dark:border-purple-900/50">
+                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Outstanding</span>
+                            <span className="text-xl font-bold text-purple-600 dark:text-purple-400">{currency}{lendingOutstanding.toLocaleString()}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* RECENT TRANSACTIONS */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Recent Transactions</h3>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
+                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Recent Transactions</h3>
                 <div className="space-y-2">
                     {allTransactions.length > 0 ? (
                         allTransactions.map((txn, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition">
+                            <div key={idx} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg transition">
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg ${txn.type === 'income' ? 'bg-green-100' : 'bg-red-100'}`}>
+                                    <div className={`p-2 rounded-lg ${txn.type === 'income' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
                                         {txn.type === 'income' ?
-                                            <ArrowUpRight size={16} className="text-green-600" /> :
-                                            <ArrowDownRight size={16} className="text-red-600" />
+                                            <ArrowUpRight size={16} className="text-green-600 dark:text-green-400" /> :
+                                            <ArrowDownRight size={16} className="text-red-600 dark:text-red-400" />
                                         }
                                     </div>
                                     <div>
-                                        <div className="font-medium text-gray-800">{txn[3] || 'No description'}</div>
-                                        <div className="text-xs text-gray-500">{txn[4]} • {txn.date.toLocaleDateString()}</div>
+                                        <div className="font-medium text-gray-800 dark:text-white">{txn[3] || 'No description'}</div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                                            {getIcon(txn[4], txn.type) && <span className="mr-1">{getIcon(txn[4], txn.type)}</span>}
+                                            {txn[4]} • {formatDateCell(txn.date)}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className={`font-bold ${txn.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                                    {txn.type === 'income' ? '+' : '-'}₹{parseVal(txn[2]).toLocaleString()}
+                                <div className={`font-bold ${txn.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {txn.type === 'income' ? '+' : '-'}{currency}{parseVal(txn[2]).toLocaleString()}
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <p className="text-gray-500 text-center py-6">No transactions yet</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-6">No transactions yet</p>
                     )}
                 </div>
             </div>

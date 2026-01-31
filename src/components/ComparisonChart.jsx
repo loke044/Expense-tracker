@@ -20,14 +20,16 @@ ChartJS.register(
     ChartDataLabels
 );
 
-export default function ComparisonChart({ income, expense }) {
+export default function ComparisonChart({ income, expense, theme, currency }) {
+    const isDark = theme === "dark";
+
     const data = {
         labels: ["Income", "Expenses"],
         datasets: [
             {
                 label: "Amount",
                 data: [income, expense],
-                backgroundColor: ["#22C55E", "#EF4444"], // Green for Income, Red for Expense
+                backgroundColor: isDark ? ["#10b981", "#f43f5e"] : ["#22C55E", "#EF4444"],
                 borderRadius: 8,
             },
         ],
@@ -38,7 +40,7 @@ export default function ComparisonChart({ income, expense }) {
         maintainAspectRatio: false,
         plugins: {
             legend: {
-                display: false, // No need for legend since colors/labels explain it
+                display: false,
             },
             title: {
                 display: false,
@@ -52,7 +54,7 @@ export default function ComparisonChart({ income, expense }) {
                 anchor: 'end',
                 align: 'start',
                 offset: -20,
-                formatter: (value) => `₹${value.toLocaleString()}`
+                formatter: (value) => `${currency}${value.toLocaleString()}`
             }
         },
         scales: {
@@ -60,20 +62,29 @@ export default function ComparisonChart({ income, expense }) {
                 beginAtZero: true,
                 grid: {
                     display: true,
-                    color: "#f3f4f6"
-                }
+                    color: isDark ? "rgba(255, 255, 255, 0.1)" : "#f3f4f6"
+                },
+                ticks: {
+                    color: isDark ? "#94a3b8" : "#374151",
+                    font: { weight: "500" },
+                    callback: (value) => `${currency}${value.toLocaleString()}`
+                },
             },
             x: {
                 grid: {
                     display: false
-                }
+                },
+                ticks: {
+                    color: isDark ? "#94a3b8" : "#374151",
+                    font: { weight: "500" }
+                },
             }
         },
     };
 
     return (
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col h-full">
-            <h2 className="text-lg font-bold mb-4 text-gray-700">Income vs Expenses</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 flex flex-col h-full transition-colors">
+            <h2 className="text-lg font-bold mb-4 text-gray-700 dark:text-white">Income vs Expenses</h2>
             <div className="flex-1 w-full min-h-[300px]">
                 <Bar data={data} options={options} />
             </div>

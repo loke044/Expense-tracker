@@ -1,12 +1,38 @@
 import { useState } from "react";
 import TransactionTile from "../components/TransactionTile";
-import { Filter } from "lucide-react";
+import { Filter, Calendar as MyCalendar, X } from "lucide-react";
 import { deleteTransaction } from "../services/api";
+import {
+    isToday,
+    isThisWeek,
+    isThisMonth,
+    isThisYear,
+    isWithinInterval,
+    parseISO,
+    startOfDay,
+    endOfDay,
+    format
+} from "date-fns";
 
-export default function Transactions({ expenses, incomes, setModal, refreshData }) {
-    const [filterType, setFilterType] = useState("all"); // all, expense, income
-    const [dateFilter, setDateFilter] = useState(""); // YYYY-MM format
+export default function Transactions({ expenses, incomes, setModal, refreshData, categories }) {
+    const [currentTab, setCurrentTab] = useState("all"); // "all", "expense", "income"
+    const [filterCategory, setFilterCategory] = useState("all");
+    const [dateMode, setDateMode] = useState("all"); // all, today, thisWeek, thisMonth, thisYear, customDate, customRange
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Helper to find icon
+    const getIcon = (catName, type) => {
+        const list = type === "expense" ? categories.expenses : categories.incomes;
+        const cat = list.find(c => c.name === catName);
+        return cat ? cat.icon : "";
+    };
+
+    const handleTabChange = (tab) => {
+        setCurrentTab(tab);
+        setFilterCategory("all"); // Reset category when tab changes
+    };
 
     // Combine and Tag Data
     let allTransactions = [
@@ -35,15 +61,31 @@ export default function Transactions({ expenses, incomes, setModal, refreshData 
     // Filtering
     const filtered = allTransactions.filter(item => {
         const itemDate = new Date(item.raw[1]);
-        const matchesType = filterType === "all" || item._type === filterType;
+
+        // Tab Filtering (formerly filterType)
+        const matchesTab = currentTab === "all" || item._type === currentTab;
+
+        // Category Filtering (only for single-type tabs)
+        const matchesCategory = currentTab === "all" ? true : (filterCategory === "all" || item.raw[4] === filterCategory);
 
         let matchesDate = true;
-        if (dateFilter) {
-            const [y, m] = dateFilter.split("-");
-            matchesDate = itemDate.getFullYear() === parseInt(y) && (itemDate.getMonth() + 1) === parseInt(m);
+        if (dateMode === "today") {
+            matchesDate = isToday(itemDate);
+        } else if (dateMode === "thisWeek") {
+            matchesDate = isThisWeek(itemDate);
+        } else if (dateMode === "thisMonth") {
+            matchesDate = isThisMonth(itemDate);
+        } else if (dateMode === "thisYear") {
+            matchesDate = isThisYear(itemDate);
+        } else if (dateMode === "customDate" && startDate) {
+            matchesDate = format(itemDate, 'yyyy-MM-dd') === startDate;
+        } else if (dateMode === "customRange" && startDate && endDate) {
+            const start = startOfDay(parseISO(startDate));
+            const end = endOfDay(parseISO(endDate));
+            matchesDate = isWithinInterval(itemDate, { start, end });
         }
 
-        return matchesType && matchesDate;
+        return matchesTab && matchesDate && matchesCategory;
     });
 
     const handleDelete = async (item) => {
@@ -51,7 +93,7 @@ export default function Transactions({ expenses, incomes, setModal, refreshData 
 
         setIsDeleting(true);
         try {
-            const id = item.raw[0]; // UUID from Column A
+            const id = item.raw[0];
             await deleteTransaction(item._type, id);
             setTimeout(() => refreshData(), 1000);
         } catch (error) {
@@ -62,16 +104,14 @@ export default function Transactions({ expenses, incomes, setModal, refreshData 
     };
 
     const handleEdit = (item) => {
-        // Convert date to YYYY-MM-DD format for date input
         const dateObj = new Date(item.raw[1]);
         const formattedDate = dateObj.toISOString().split('T')[0];
 
-        // Pass transaction data to modal for editing
         setModal({
             isOpen: true,
             type: item._type,
             editMode: true,
-            transactionId: item.raw[0], // UUID
+            transactionId: item.raw[0],
             initialData: {
                 date: formattedDate,
                 amount: item.raw[2],
@@ -81,12 +121,15 @@ export default function Transactions({ expenses, incomes, setModal, refreshData 
         });
     };
 
+    // Get categories for the dropdown based on currentTab
+    const availableCategories = currentTab === "expense" ? categories.expenses : categories.incomes;
+
     return (
-        <div className="p-6 max-w-6xl mx-auto w-full h-[calc(100vh-80px)] flex flex-col">
+        <div className="p-6 max-w-6xl mx-auto w-full h-[calc(100vh-80px)] flex flex-col transition-colors">
             <header className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-800">Transactions</h1>
-                    <p className="text-gray-500">Manage your history.</p>
+                    <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white">Transactions</h1>
+                    <p className="text-gray-500 dark:text-gray-400">Manage your history.</p>
                 </div>
                 <div className="flex gap-3">
                     <button
@@ -104,44 +147,139 @@ export default function Transactions({ expenses, incomes, setModal, refreshData 
                 </div>
             </header>
 
-            {/* FILTERS */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 items-center">
-                <div className="flex items-center gap-2 text-gray-600 font-medium">
-                    <Filter size={20} />
-                    <span>Filters:</span>
-                </div>
-
-                <div className="flex bg-gray-100 p-1 rounded-lg">
-                    {["all", "expense", "income"].map(type => (
-                        <button
-                            key={type}
-                            onClick={() => setFilterType(type)}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${filterType === type ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                                }`}
-                        >
-                            {type}
-                        </button>
-                    ))}
-                </div>
-
-                <input
-                    type="month"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-
-                {dateFilter && (
-                    <button onClick={() => setDateFilter("")} className="text-xs text-red-500 underline">
-                        Clear Date
+            {/* TAB SELECTOR */}
+            <div className="flex border-b border-gray-200 dark:border-slate-700 mb-6 w-full">
+                {[
+                    { id: "all", label: "All Transactions" },
+                    { id: "expense", label: "Expenses" },
+                    { id: "income", label: "Income" }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => handleTabChange(tab.id)}
+                        className={`px-8 py-3 text-sm font-bold transition-all relative ${currentTab === tab.id
+                                ? "text-indigo-600 dark:text-indigo-400"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+                            }`}
+                    >
+                        {tab.label}
+                        {currentTab === tab.id && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full" />
+                        )}
                     </button>
+                ))}
+            </div>
+
+            {/* FILTERS */}
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 mb-6 space-y-4 transition-colors">
+                <div className="flex flex-wrap items-center gap-6">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 font-bold text-sm uppercase tracking-wider">
+                        <Filter size={18} className="text-indigo-600" />
+                        <span>Filter By:</span>
+                    </div>
+
+                    {/* Category Filter (ONLY FOR EXPENSE/INCOME TABS) */}
+                    {currentTab !== "all" && (
+                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
+                            <select
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                                className="px-3 py-1.5 bg-gray-100 dark:bg-slate-900 border-none rounded-xl text-sm font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer"
+                            >
+                                <option value="all">All {currentTab === 'expense' ? 'Expenses' : 'Income'} Categories</option>
+                                {availableCategories.map((cat, idx) => (
+                                    <option key={idx} value={cat.name}>
+                                        {cat.icon} {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Quick Period Filter */}
+                    <div className="flex flex-wrap bg-gray-100 dark:bg-slate-900 p-1 rounded-xl">
+                        {[
+                            { id: "all", label: "All Time" },
+                            { id: "today", label: "Today" },
+                            { id: "thisWeek", label: "Week" },
+                            { id: "thisMonth", label: "Month" },
+                            { id: "thisYear", label: "Year" },
+                            { id: "customDate", label: "Specific Date" },
+                            { id: "customRange", label: "Range" }
+                        ].map(period => (
+                            <button
+                                key={period.id}
+                                onClick={() => {
+                                    setDateMode(period.id);
+                                    if (period.id !== 'customDate' && period.id !== 'customRange') {
+                                        setStartDate("");
+                                        setEndDate("");
+                                    }
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${dateMode === period.id ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+                                    }`}
+                            >
+                                {period.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Conditional Custom Inputs */}
+                {(dateMode === 'customDate' || dateMode === 'customRange') && (
+                    <div className="flex flex-wrap items-center gap-3 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-center gap-2">
+                            <MyCalendar size={18} className="text-gray-400" />
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            />
+                        </div>
+
+                        {dateMode === 'customRange' && (
+                            <>
+                                <span className="text-gray-400 text-sm font-bold">To</span>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                />
+                            </>
+                        )}
+
+                        {(startDate || endDate) && (
+                            <button
+                                onClick={() => { setStartDate(""); setEndDate(""); }}
+                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-full transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
 
             {/* LIST */}
-            <div className="flex-1 overflow-y-auto pr-2 space-y-3 pb-20">
+            <div className="flex-1 overflow-y-auto pr-2 space-y-3 pb-20 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-slate-700">
                 {filtered.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">No transactions found.</div>
+                    <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+                        <Filter size={48} className="mb-4 opacity-10" />
+                        <p className="text-lg font-medium">No transactions found for these filters.</p>
+                        <button
+                            onClick={() => {
+                                handleTabChange("all");
+                                setDateMode("all");
+                                setStartDate("");
+                                setEndDate("");
+                            }}
+                            className="mt-4 text-indigo-600 font-bold hover:underline"
+                        >
+                            Reset all filters
+                        </button>
+                    </div>
                 ) : (
                     filtered.map((item, idx) => (
                         <TransactionTile
@@ -149,6 +287,7 @@ export default function Transactions({ expenses, incomes, setModal, refreshData 
                             item={item.raw}
                             type={item._type}
                             balance={item._balance}
+                            emoji={getIcon(item.raw[4], item._type)}
                             onDelete={() => handleDelete(item)}
                             onEdit={() => handleEdit(item)}
                         />

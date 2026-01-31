@@ -13,19 +13,33 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
-export default function MonthlyTrendChart({ expenses, incomes, theme, currency }) {
+export default function AllMonthsTrendChart({ expenses, incomes, theme, currency }) {
     const parseVal = (v) => parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0;
     const isDark = theme === "dark";
 
     // ... (rest of data logic same)
+    const allDates = [
+        ...expenses.map(row => new Date(row[1])),
+        ...incomes.map(row => new Date(row[1]))
+    ].filter(d => !isNaN(d.getTime()));
+
+    if (allDates.length === 0) {
+        return <p className="text-gray-500 text-center py-10">No data available for trend</p>;
+    }
+
+    const minDate = new Date(Math.min(...allDates));
+    const maxDate = new Date(Math.max(...allDates));
+
     const months = [];
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    let current = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    const last = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+
+    while (current <= last) {
         months.push({
-            key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-            label: d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+            key: `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`,
+            label: current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
         });
+        current.setMonth(current.getMonth() + 1);
     }
 
     const expenseByMonth = {};
@@ -33,12 +47,14 @@ export default function MonthlyTrendChart({ expenses, incomes, theme, currency }
 
     expenses.forEach(row => {
         const date = new Date(row[1]);
+        if (isNaN(date.getTime())) return;
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         expenseByMonth[monthKey] = (expenseByMonth[monthKey] || 0) + parseVal(row[2]);
     });
 
     incomes.forEach(row => {
         const date = new Date(row[1]);
+        if (isNaN(date.getTime())) return;
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         incomeByMonth[monthKey] = (incomeByMonth[monthKey] || 0) + parseVal(row[2]);
     });
@@ -75,14 +91,14 @@ export default function MonthlyTrendChart({ expenses, incomes, theme, currency }
             legend: {
                 position: "top",
                 labels: {
-                    color: isDark ? "#94a3b8" : "#374151", // slate-400 : gray-700
+                    color: isDark ? "#94a3b8" : "#374151",
                     font: { weight: "500" }
                 }
             },
             title: {
                 display: true,
-                text: "Income vs Expenses Trend (Last 6 Months)",
-                color: isDark ? "#f8fafc" : "#1f2937", // slate-50 : gray-800
+                text: "Overall Monthly Trend (All Months)",
+                color: isDark ? "#f8fafc" : "#1f2937",
                 font: { size: 16, weight: "bold" }
             }
         },
@@ -112,7 +128,7 @@ export default function MonthlyTrendChart({ expenses, incomes, theme, currency }
 
     return (
         <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 transition-colors">
-            <div style={{ height: "300px" }}>
+            <div style={{ height: "350px" }}>
                 <Line data={data} options={options} />
             </div>
         </div>
