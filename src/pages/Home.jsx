@@ -40,6 +40,11 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
         .reduce((sum, row) => sum + parseVal(row[2]), 0);
     const lendingOutstanding = totalLent - totalReturned;
 
+    const totalInvestments = expenses.filter(row => {
+        const cat = String(row[4] || "").toLowerCase();
+        return cat === "investments" || cat === "investment";
+    }).reduce((sum, row) => sum + parseVal(row[2]), 0);
+
     const allTransactions = [
         ...expenses.map(e => ({ ...e, type: 'expense', date: new Date(e[1]) })),
         ...incomes.map(i => ({ ...i, type: 'income', date: new Date(i[1]) }))
@@ -77,8 +82,8 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                 </button>
             </div>
 
-            {/* MAIN STATS - 4 CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            {/* MAIN STATS - 5 CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
                 {/* Total Balance */}
                 <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl shadow-lg text-white">
                     <div className="flex items-center justify-between mb-3">
@@ -111,6 +116,18 @@ export default function Home({ expenses, incomes, totalExpenses, totalIncome, se
                     </div>
                     <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{totalExpenses.toLocaleString()}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">Total Expenses</div>
+                </div>
+
+                {/* Total Investments */}
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-2 border-blue-200 dark:border-blue-900/30 hover:shadow-md transition">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <TrendingUp size={20} className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <span className="text-xs font-medium text-gray-400">Total</span>
+                    </div>
+                    <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{currency}{totalInvestments.toLocaleString()}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Investments</div>
                 </div>
 
                 {/* Savings Rate */}
