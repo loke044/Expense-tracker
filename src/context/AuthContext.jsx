@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
                 return profile.given_name || profile.name;
             }
         } catch (e) {
-            console.warn("Profile fetch failed:", e);
+            // Silently fail profile fetch
         }
         return null;
     };
