@@ -116,6 +116,9 @@ function AppContent() {
   if (authLoading) return null; // Or a splash screen
 
   if (!user) {
+    if (window.location.pathname !== "/") {
+      window.history.replaceState(null, "", "/");
+    }
     return <LoginScreen />;
   }
 
