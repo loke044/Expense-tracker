@@ -16,7 +16,7 @@ const TransactionModal = ({ isOpen, type, onClose, onSubmit, categories, editMod
         // Pre-fill form with existing transaction data
         setForm({
           date: initialData.date,
-          amount: initialData.amount,
+          amount: parseFloat(String(initialData.amount).replace(/[^0-9.]/g, "")) || "",
           description: initialData.description,
           category: initialData.category
         });

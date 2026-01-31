@@ -46,7 +46,7 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
     // 2. Calculate Balance
     let runningBalance = 0;
     allTransactions = allTransactions.map(item => {
-        const amount = parseFloat(item.raw[2]) || 0;
+        const amount = parseFloat(String(item.raw[2]).replace(/[^0-9.-]+/g, "")) || 0;
         if (item._type === "income") {
             runningBalance += amount;
         } else {
@@ -158,8 +158,8 @@ export default function Transactions({ expenses, incomes, setModal, refreshData,
                         key={tab.id}
                         onClick={() => handleTabChange(tab.id)}
                         className={`px-8 py-3 text-sm font-bold transition-all relative ${currentTab === tab.id
-                                ? "text-indigo-600 dark:text-indigo-400"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
+                            ? "text-indigo-600 dark:text-indigo-400"
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
                             }`}
                     >
                         {tab.label}
