@@ -4,6 +4,23 @@ const SPREADSHEET_NAME = "My_Finance_Data";
 // Find existing sheet in user's Drive
 export const findExpenseSheet = async () => {
     try {
+        // 1. Validated Cache: Check if we have a stored ID and if it is valid
+        const storedId = localStorage.getItem("spreadsheet_id");
+        if (storedId) {
+            try {
+                // Verify if it still exists and isn't trashed
+                await window.gapi.client.drive.files.get({
+                    fileId: storedId,
+                    fields: 'trashed'
+                });
+                return storedId;
+            } catch (e) {
+                console.warn("Stored sheet ID is invalid or missing, searching Drive...", e);
+                localStorage.removeItem("spreadsheet_id");
+            }
+        }
+
+        // 2. Search Drive
         const query = `name = '${SPREADSHEET_NAME}' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`;
         const response = await window.gapi.client.drive.files.list({
             q: query,

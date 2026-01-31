@@ -105,18 +105,23 @@ export function AuthProvider({ children }) {
         if (tokenClient) {
             // Prompt the user to select an account.
             // requestAccessToken({ prompt: '' }) will skip prompt if already consented
-            // Force consent to ensure new scopes are granted
-            tokenClient.requestAccessToken({ prompt: 'consent' });
+            // requestAccessToken({ prompt: '' }) will skip prompt if already consented
+            tokenClient.requestAccessToken({ prompt: '' });
         }
     };
 
     const logout = () => {
-        const token = user?.accessToken;
-        if (token && window.google) {
-            window.google.accounts.oauth2.revoke(token, () => {
-                console.log('Access token revoked');
-            });
-        }
+        /* 
+           NOTE: We do NOT revoke the token here, because that removes the app's permissions 
+           entirely, forcing the user to re-consent on next login. 
+           We just clear the local session.
+        */
+        // const token = user?.accessToken;
+        // if (token && window.google) {
+        //     window.google.accounts.oauth2.revoke(token, () => {
+        //         console.log('Access token revoked');
+        //     });
+        // }
         setUser(null);
         localStorage.removeItem("google_access_token");
         localStorage.removeItem("google_user_name");
